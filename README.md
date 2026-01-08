@@ -11,6 +11,29 @@ An autonomous AI agent that generates production-ready code and reviews Pull Req
 
 ## Architecture
 
+# local-ai-pr-reviewer 🤖🔍
+
+AI-powered pull request reviewer that runs **entirely locally** using LLMs (via Ollama), integrates with **GitHub Actions**, and posts **inline, security-focused code review comments** directly on pull requests.
+
+No OpenAI. No cloud inference. No data leaves your infrastructure.
+
+---
+
+## ✨ Features
+
+- 🤖 **Automated AI PR reviews**
+- 🔒 **Local-only inference** (Ollama + LLMs like Llama 3)
+- 💬 **Inline comments on exact lines changed**
+- 🧠 **Security & logic bug detection**
+- ⚙️ **Runs in GitHub Actions**
+- 💸 **Zero cloud or API costs**
+- 🔑 **Secure API key authentication**
+- 🧩 Language-agnostic (JS, TS, Python, Go, etc.)
+
+---
+
+## 🏗️ Architecture Overview
+
 ```ascii
 GitHub PR
    ↓
