@@ -55,7 +55,7 @@ GitHub API (Post Comments)
 1.  **Clone & Install**
     ```bash
     git clone https://github.com/mukeshbhuriya/local-ai-pr-reviewer
-    cd AI
+    cd local-ai-pr-reviewer
     npm install
     ```
 
