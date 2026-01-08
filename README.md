@@ -63,6 +63,9 @@ GitHub API (Post Comments)
     Create a `.env` file:
     ```env
     PORT=3000
+    # --- LLM CONFIG ---
+    LLM_PROVIDER=ollama
+    LLM_MODEL=llama3
     OPENAI_API_KEY=sk-...
     ```
 
