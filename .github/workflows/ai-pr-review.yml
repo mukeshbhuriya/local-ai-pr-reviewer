@@ -1,0 +1,101 @@
+name: AI PR Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get Diff
+        run: |
+          git fetch origin ${{ github.base_ref }}
+          git diff origin/${{ github.base_ref }} > pr.diff
+
+      - name: Build payload
+        run: |
+          jq -n \
+            --arg repo "${{ github.repository }}" \
+            --arg prNumber "${{ github.event.pull_request.number }}" \
+            --arg diff "$(cat pr.diff)" \
+            '{ repo: $repo, prNumber: ($prNumber | tonumber), diff: $diff }' \
+            > payload.json
+
+      - name: Call AI Reviewer
+        run: |
+          curl -X POST "${{ secrets.AI_REVIEW_API_URL }}" \
+            -H "Content-Type: application/json" \
+            -H "x-api-key: ${{ secrets.APP_API_KEY }}" \
+            --data @payload.json \
+            --fail \
+            --show-error \
+            --silent \
+            > review.json
+
+      - name: Post Comments
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const review = JSON.parse(fs.readFileSync('review.json', 'utf8'));
+
+            if (!review || !review.summary) {
+              console.log('No review content returned.');
+              return;
+            }
+
+            // Post Summary Comment
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `## 🤖 AI PR Review\n\n${review.summary}`
+            });
+
+            let hasBlocker = false;
+
+            // Post Inline Comments
+            if (Array.isArray(review.comments)) {
+              for (const comment of review.comments) {
+                if (comment.severity === 'BLOCKER') {
+                  hasBlocker = true;
+                }
+
+                if (comment.file && comment.line) {
+                  try {
+                    await github.rest.pulls.createReviewComment({
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      pull_number: context.issue.number,
+                      body: comment.raw_comment || `**[${comment.severity}]** ${comment.issue}\n\nSuggested Fix:\n\`\`\`typescript\n${comment.suggestion}\n\`\`\``,
+                      path: comment.file,
+                      line: comment.line,
+                      side: 'RIGHT',
+                      commit_id: context.payload.pull_request.head.sha
+                    });
+                  } catch (error) {
+                    // Fallback: If inline comment fails (e.g. invalid line coverage), post as general comment
+                    console.log(`Failed to post inline comment. Posting as general note. Error: ${error.message}`);
+                     await github.rest.issues.createComment({
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      issue_number: context.issue.number,
+                      body: `**[${comment.severity}] on ${comment.file}:${comment.line}**: ${comment.issue}`
+                    });
+                  }
+                }
+              }
+            }
+
+            // FAIL THE WORKFLOW IF BLOCKER FOUND
+            if (hasBlocker) {
+              core.setFailed('⛔ PR Review failed with BLOCKER issues. Please fix them before merging.');
+            }

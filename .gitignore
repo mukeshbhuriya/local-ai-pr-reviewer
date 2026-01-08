@@ -1,0 +1,75 @@
+# =========================
+# General
+# =========================
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.swp
+
+# =========================
+# Environment / Secrets
+# =========================
+.env
+*.secret
+*.key
+*.pem
+
+# =========================
+# Node.js
+# =========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+
+# =========================
+# Build / Dist
+# =========================
+dist/
+build/
+out/
+
+# =========================
+# GitHub Actions Artifacts
+# =========================
+*.zip
+*.tar.gz
+
+# =========================
+# Local AI / Ollama
+# =========================
+.ollama/
+models/
+ollama.log
+
+# =========================
+# IDE / Editor
+# =========================
+.vscode/
+.idea/
+*.iml
+
+# =========================
+# OS-specific
+# =========================
+.DS_Store
+Desktop.ini
+
+# =========================
+# Coverage / Reports
+# =========================
+coverage/
+reports/
